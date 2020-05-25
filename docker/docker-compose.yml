@@ -80,6 +80,16 @@ services:
         networks:
           - streaming-data-internal
 
+    station-france-producer:
+      build:
+        context: ../CitibikeApiProducer
+        dockerfile: Dockerfile-station-france
+      depends_on:
+        - kafka
+        - zookeeper-seed
+      networks:
+        - streaming-data-internal
+
     raw-station-information-data-saver:
         build:
             context: ../RawDataSaver
@@ -89,6 +99,7 @@ services:
           - station-information-producer
           - station-status-producer
           - station-san-francisco-producer
+          - station-france-producer
           - hadoop-seed
           - zookeeper-seed
         volumes:
@@ -106,6 +117,7 @@ services:
           - station-information-producer
           - station-status-producer
           - station-san-francisco-producer
+          - station-france-producer
           - hadoop-seed
           - zookeeper-seed
         volumes:
@@ -123,6 +135,7 @@ services:
           - station-information-producer
           - station-status-producer
           - station-san-francisco-producer
+          - station-france-producer
           - hadoop-seed
           - zookeeper-seed
         volumes:
@@ -130,6 +143,24 @@ services:
         networks:
           - streaming-data-internal
         restart: on-failure
+
+    raw-station-data-france-saver:
+      build:
+        context: ../RawDataSaver
+        dockerfile: Dockerfile-station-data-FR
+      depends_on:
+        - kafka
+        - station-information-producer
+        - station-status-producer
+        - station-san-francisco-producer
+        - station-france-producer
+        - hadoop-seed
+        - zookeeper-seed
+      volumes:
+        - ~/.ivy2:/root/.ivy2:rw
+      networks:
+        - streaming-data-internal
+      restart: on-failure
 
     station-consumer:
         build:
@@ -139,6 +170,7 @@ services:
           - kafka
           - station-status-producer
           - station-san-francisco-producer
+          - station-france-producer
           - raw-station-status-data-saver
         volumes:
           - ~/.ivy2:/root/.ivy2:rw
